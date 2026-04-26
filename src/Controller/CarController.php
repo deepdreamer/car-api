@@ -48,8 +48,10 @@ class CarController
     #[Route('/{id}', methods: ['DELETE'])]
     public function remove(int $id): JsonResponse
     {
-        //@TODO: to be implemented
+        if (!$this->carService->deleteCar($id)) {
+            return new JsonResponse(['error' => 'Car not found.'], Response::HTTP_NOT_FOUND);
+        }
 
-        return new JsonResponse([]);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }

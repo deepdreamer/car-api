@@ -94,6 +94,20 @@ class CarService
         return $dto;
     }
 
+    public function deleteCar(int $id): bool
+    {
+        $car = $this->carRepository->find($id);
+
+        if ($car === null) {
+            return false;
+        }
+
+        $this->entityManager->remove($car);
+        $this->entityManager->flush();
+
+        return true;
+    }
+
     /**
      * @return array{id: int|null, make: string, model: string, buildDate: string, colour: string}
      */
