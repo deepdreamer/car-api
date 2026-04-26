@@ -62,6 +62,21 @@ The application will be available at [http://localhost:8080](http://localhost:80
 
 Interactive API documentation (Swagger UI) is available at [http://localhost:8080/api/index.html](http://localhost:8080/api/index.html) once the application is running.
 
+## Project Structure
+
+| Path | Description |
+|------|-------------|
+| [`src/Controller/`](src/Controller/) | Route handlers — one controller per resource |
+| [`src/Services/`](src/Services/) | Business logic called by controllers |
+| [`src/Entity/`](src/Entity/) | Doctrine ORM entities |
+| [`src/Repository/`](src/Repository/) | Database query methods |
+| [`src/DTO/`](src/DTO/) | Request DTOs used for input validation |
+| [`src/DataFixtures/`](src/DataFixtures/) | Seed data used in tests and local development |
+| [`tests/Controller/`](tests/Controller/) | Integration tests for each controller |
+| [`tests/ApiTestCase.php`](tests/ApiTestCase.php) | Shared test base class with assertion helpers |
+| [`public/api/openapi.yaml`](public/api/openapi.yaml) | OpenAPI specification |
+| [`migrations/`](migrations/) | Doctrine database migrations |
+
 ## Code Quality
 
 All code quality tools can be run via `make`. Requires `make` to be installed on the host.
