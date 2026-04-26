@@ -11,13 +11,10 @@ readonly class CreateCarRequest
     public function __construct(
         #[Assert\NotBlank]
         public string $make,
-
         #[Assert\NotBlank]
         public string $model,
-
         #[Assert\GreaterThanOrEqual(value: '-4 years', message: 'The build date cannot be older than 4 years.')]
         public \DateTimeImmutable $buildDate,
-
         #[Assert\NotBlank]
         #[Assert\Type('integer')]
         #[Assert\Positive]

@@ -8,10 +8,10 @@ use App\DataFixtures\AppFixtures;
 use App\Repository\CarRepository;
 use App\Repository\ColourRepository;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
