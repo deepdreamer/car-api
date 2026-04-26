@@ -107,6 +107,74 @@ class ColourControllerTest extends ApiTestCase
         $this->assertCount(1, $data['data']); // 4 total, 3 on page 1, 1 on page 2
     }
 
+    public function testCreateReturnsCreated(): void
+    {
+        $client = static::createClient();
+        $client->request('POST', '/api/colours', [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => 'Green',
+        ]));
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+        $this->assertResponseHeaderSame('Content-Type', 'application/json');
+    }
+
+    public function testCreateResponseShape(): void
+    {
+        $client = static::createClient();
+        $client->request('POST', '/api/colours', [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => 'Green',
+        ]));
+
+        $data = $this->decodeResponse($client->getResponse()->getContent());
+
+        $this->assertArrayHasKey('id', $data);
+        $this->assertArrayHasKey('name', $data);
+        $this->assertIsInt($data['id']);
+        $this->assertSame('Green', $data['name']);
+    }
+
+    public function testCreateReturnsBadRequestForInvalidJson(): void
+    {
+        $client = static::createClient();
+        $client->request('POST', '/api/colours', [], [], ['CONTENT_TYPE' => 'application/json'], 'not-valid-json');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->decodeResponse($client->getResponse()->getContent());
+        $this->assertArrayHasKey('error', $data);
+        $this->assertEquals('Invalid JSON body.', $data['error']);
+    }
+
+    public function testCreateReturnsUnprocessableForMissingName(): void
+    {
+        $client = static::createClient();
+        $client->request('POST', '/api/colours', [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'foo' => 'bar',
+        ]));
+
+        $this->assertUnprocessableWithError($client, 'request', 'Invalid or missing fields. Expected: name (string).');
+    }
+
+    public function testCreateReturnsUnprocessableForBlankName(): void
+    {
+        $client = static::createClient();
+        $client->request('POST', '/api/colours', [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => '',
+        ]));
+
+        $this->assertUnprocessableWithError($client, 'name', 'This value should not be blank.');
+    }
+
+    public function testCreateReturnsUnprocessableForDuplicateName(): void
+    {
+        $client = static::createClient();
+        $client->request('POST', '/api/colours', [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => 'Red', // exists in fixtures
+        ]));
+
+        $this->assertUnprocessableWithError($client, 'name', 'Colour already exists.');
+    }
+
     public function testListReturnsEmptyDataWhenNoColours(): void
     {
         self::bootKernel();
