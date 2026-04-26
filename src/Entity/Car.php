@@ -70,7 +70,7 @@ class Car
         return $this;
     }
 
-    public function getColor(): Colour
+    public function getColour(): Colour
     {
         return $this->colour;
     }

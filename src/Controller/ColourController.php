@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-
 use App\Repository\ColourRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,7 +14,7 @@ class ColourController
     #[Route('', methods: ['GET'])]
     public function list(ColourRepository $colourRepository): JsonResponse
     {
-        //@TODO: to be implemented
+        $colours = $colourRepository->findAll();
 
         return new JsonResponse([]);
     }
@@ -35,5 +34,4 @@ class ColourController
 
         return new JsonResponse([]);
     }
-
 }
