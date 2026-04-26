@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\DataFixtures\AppFixtures;
+use App\Repository\CarRepository;
 use App\Repository\ColourRepository;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -17,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 class CarControllerTest extends WebTestCase
 {
     private int $validColourId;
+    private int $validCarId;
 
     protected function setUp(): void
     {
@@ -35,6 +37,11 @@ class CarControllerTest extends WebTestCase
         $colourRepo = self::getContainer()->get(ColourRepository::class);
         $colour = $colourRepo->findOneBy([]);
         $this->validColourId = (int) $colour?->getId();
+
+        /** @var CarRepository $carRepo */
+        $carRepo = self::getContainer()->get(CarRepository::class);
+        $car = $carRepo->findOneBy([]);
+        $this->validCarId = (int) $car?->getId();
 
         self::ensureKernelShutdown();
     }
@@ -301,6 +308,38 @@ class CarControllerTest extends WebTestCase
         ]));
 
         $this->assertUnprocessableWithError($client, 'colourId', 'Colour not found.');
+    }
+
+    public function testDeleteReturnsNoContent(): void
+    {
+        $client = static::createClient();
+        $client->request('DELETE', '/api/cars/' . $this->validCarId);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+    }
+
+    public function testDeleteActuallyRemovesCar(): void
+    {
+        $client = static::createClient();
+        $client->request('DELETE', '/api/cars/' . $this->validCarId);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+
+        $client->request('DELETE', '/api/cars/' . $this->validCarId);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
+    public function testDeleteReturnsNotFoundForNonExistentId(): void
+    {
+        $client = static::createClient();
+        $client->request('DELETE', '/api/cars/99999');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+
+        $data = $this->decodeResponse($client->getResponse()->getContent());
+        $this->assertArrayHasKey('error', $data);
+        $this->assertEquals('Car not found.', $data['error']);
     }
 
     private function assertUnprocessableWithError(KernelBrowser $client, string $field, string $message): void
