@@ -1,0 +1,159 @@
+openapi: 3.0.0
+info:
+  title: Car API
+  version: 1.0.0
+
+tags:
+  - name: Cars
+
+paths:
+  /api/cars:
+    get:
+      tags: [Cars]
+      summary: List all cars
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated list of cars
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Car'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags: [Cars]
+      summary: Create a car
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCarRequest'
+      responses:
+        '201':
+          description: Car created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+        '400':
+          description: Invalid JSON body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: string
+                example:
+                  errors:
+                    make: This value should not be blank.
+
+  /api/cars/{id}:
+    delete:
+      tags: [Cars]
+      summary: Delete a car
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Car deleted
+        '404':
+          description: Car not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Car not found.
+
+components:
+  schemas:
+    Car:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        make:
+          type: string
+          example: Toyota
+        model:
+          type: string
+          example: Yaris
+        buildDate:
+          type: string
+          format: date
+          example: '2023-01-01'
+        colour:
+          type: string
+          example: Red
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        pages:
+          type: integer
+          example: 10
+
+    CreateCarRequest:
+      type: object
+      required: [make, model, buildDate, colourId]
+      properties:
+        make:
+          type: string
+          example: Toyota
+        model:
+          type: string
+          example: Yaris
+        buildDate:
+          type: string
+          format: date
+          example: '2023-01-01'
+        colourId:
+          type: integer
+          example: 1
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
