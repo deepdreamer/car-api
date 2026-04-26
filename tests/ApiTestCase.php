@@ -4,12 +4,41 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
+use App\DataFixtures\AppFixtures;
+use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
+use Doctrine\Common\DataFixtures\Loader;
+use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
 abstract class ApiTestCase extends WebTestCase
 {
+    protected static function purgeDatabase(): void
+    {
+        self::bootKernel();
+
+        /** @var EntityManagerInterface $em */
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+        new ORMPurger($em)->purge();
+
+        self::ensureKernelShutdown();
+    }
+
+    protected static function loadFixtures(): void
+    {
+        self::bootKernel();
+
+        /** @var EntityManagerInterface $em */
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+
+        $loader = new Loader();
+        $loader->addFixture(new AppFixtures());
+
+        new ORMExecutor($em, new ORMPurger($em))->execute($loader->getFixtures());
+    }
+
     /** @param array<string, mixed> $data */
     protected function assertPaginatedResponseShape(array $data): void
     {

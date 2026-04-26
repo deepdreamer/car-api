@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
-use App\DataFixtures\AppFixtures;
 use App\Repository\CarRepository;
 use App\Repository\ColourRepository;
 use App\Tests\ApiTestCase;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
-use Doctrine\Common\DataFixtures\Loader;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class CarControllerTest extends ApiTestCase
@@ -21,16 +16,7 @@ class CarControllerTest extends ApiTestCase
 
     protected function setUp(): void
     {
-        self::bootKernel();
-
-        /** @var EntityManagerInterface $em */
-        $em = self::getContainer()->get(EntityManagerInterface::class);
-
-        $loader = new Loader();
-        $loader->addFixture(new AppFixtures());
-
-        $executor = new ORMExecutor($em, new ORMPurger($em));
-        $executor->execute($loader->getFixtures());
+        self::loadFixtures();
 
         /** @var ColourRepository $colourRepo */
         $colourRepo = self::getContainer()->get(ColourRepository::class);
@@ -142,13 +128,7 @@ class CarControllerTest extends ApiTestCase
 
     public function testListReturnsEmptyDataWhenNoCars(): void
     {
-        self::bootKernel();
-
-        /** @var EntityManagerInterface $em */
-        $em = self::getContainer()->get(EntityManagerInterface::class);
-        new ORMPurger($em)->purge();
-
-        self::ensureKernelShutdown();
+        self::purgeDatabase();
 
         $client = static::createClient();
         $client->request('GET', '/api/cars');

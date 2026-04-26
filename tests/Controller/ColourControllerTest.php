@@ -4,28 +4,24 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
-use App\DataFixtures\AppFixtures;
+use App\Repository\ColourRepository;
 use App\Tests\ApiTestCase;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
-use Doctrine\Common\DataFixtures\Loader;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class ColourControllerTest extends ApiTestCase
 {
+    private int $validColourId;
+    private string $validColourName;
+
     protected function setUp(): void
     {
-        self::bootKernel();
+        self::loadFixtures();
 
-        /** @var EntityManagerInterface $em */
-        $em = self::getContainer()->get(EntityManagerInterface::class);
-
-        $loader = new Loader();
-        $loader->addFixture(new AppFixtures());
-
-        $executor = new ORMExecutor($em, new ORMPurger($em));
-        $executor->execute($loader->getFixtures());
+        /** @var ColourRepository $colourRepo */
+        $colourRepo = self::getContainer()->get(ColourRepository::class);
+        $colour = $colourRepo->findOneBy([]);
+        $this->validColourId = (int) $colour?->getId();
+        $this->validColourName = (string) $colour?->getName();
 
         self::ensureKernelShutdown();
     }
@@ -175,15 +171,107 @@ class ColourControllerTest extends ApiTestCase
         $this->assertUnprocessableWithError($client, 'name', 'Colour already exists.');
     }
 
+    public function testEditReturnsOk(): void
+    {
+        $client = static::createClient();
+        $client->request('PATCH', '/api/colours/' . $this->validColourId, [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => 'Purple',
+        ]));
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+        $this->assertResponseHeaderSame('Content-Type', 'application/json');
+    }
+
+    public function testEditResponseShape(): void
+    {
+        $client = static::createClient();
+        $client->request('PATCH', '/api/colours/' . $this->validColourId, [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => 'Purple',
+        ]));
+
+        $data = $this->decodeResponse($client->getResponse()->getContent());
+
+        $this->assertArrayHasKey('id', $data);
+        $this->assertArrayHasKey('name', $data);
+        $this->assertIsInt($data['id']);
+        $this->assertSame('Purple', $data['name']);
+    }
+
+    public function testEditIsIdempotent(): void
+    {
+        $client = static::createClient();
+
+        $client->request('PATCH', '/api/colours/' . $this->validColourId, [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => $this->validColourName,
+        ]));
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $client->request('PATCH', '/api/colours/' . $this->validColourId, [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => $this->validColourName,
+        ]));
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+    }
+
+    public function testEditReturnsBadRequestForInvalidJson(): void
+    {
+        $client = static::createClient();
+        $client->request('PATCH', '/api/colours/' . $this->validColourId, [], [], ['CONTENT_TYPE' => 'application/json'], 'not-valid-json');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->decodeResponse($client->getResponse()->getContent());
+        $this->assertArrayHasKey('error', $data);
+        $this->assertEquals('Invalid JSON body.', $data['error']);
+    }
+
+
+    public function testEditReturnsNotFoundForNonExistentId(): void
+    {
+        $client = static::createClient();
+        $client->request('PATCH', '/api/colours/99999', [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => 'Purple',
+        ]));
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+
+        $data = $this->decodeResponse($client->getResponse()->getContent());
+        $this->assertArrayHasKey('error', $data);
+        $this->assertEquals('Colour not found.', $data['error']);
+    }
+
+    public function testEditReturnsUnprocessableForMissingName(): void
+    {
+        $client = static::createClient();
+        $client->request('PATCH', '/api/colours/' . $this->validColourId, [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'foo' => 'bar',
+        ]));
+
+        $this->assertUnprocessableWithError($client, 'request', 'Invalid or missing fields. Expected: name (string).');
+    }
+
+    public function testEditReturnsUnprocessableForBlankName(): void
+    {
+        $client = static::createClient();
+        $client->request('PATCH', '/api/colours/' . $this->validColourId, [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => '',
+        ]));
+
+        $this->assertUnprocessableWithError($client, 'name', 'This value should not be blank.');
+    }
+
+    public function testEditReturnsUnprocessableForDuplicateName(): void
+    {
+        $client = static::createClient();
+        $client->request('PATCH', '/api/colours/' . $this->validColourId, [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode([
+            'name' => 'Blue', // exists in fixtures as a different colour
+        ]));
+
+        $this->assertUnprocessableWithError($client, 'name', 'Colour already exists.');
+    }
+
     public function testListReturnsEmptyDataWhenNoColours(): void
     {
-        self::bootKernel();
-
-        /** @var EntityManagerInterface $em */
-        $em = self::getContainer()->get(EntityManagerInterface::class);
-        new ORMPurger($em)->purge();
-
-        self::ensureKernelShutdown();
+        self::purgeDatabase();
 
         $client = static::createClient();
         $client->request('GET', '/api/colours');
