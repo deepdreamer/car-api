@@ -52,27 +52,45 @@ The application will be available at [http://localhost:8080](http://localhost:80
 
 ## Code Quality
 
+All code quality tools can be run via `make`. Requires `make` to be installed on the host.
+
+### Run all linters
+
+```bash
+make lint
+```
+
+Runs PHPStan and PHPCS together.
+
 ### PHPStan (static analysis)
 
 ```bash
+make phpstan
+# or
 docker-compose exec php vendor/bin/phpstan analyse
 ```
 
 ### PHP_CodeSniffer (coding standards check)
 
 ```bash
+make phpcs
+# or
 docker-compose exec php vendor/bin/phpcs
 ```
 
 ### PHP Code Beautifier and Fixer (auto-fix coding standards)
 
 ```bash
+make phpcbf
+# or
 docker-compose exec php vendor/bin/phpcbf
 ```
 
 ### PHPUnit (tests)
 
 ```bash
+make phpunit
+# or
 docker-compose exec php vendor/bin/phpunit
 ```
 
