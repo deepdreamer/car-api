@@ -43,9 +43,17 @@ docker-compose exec php php bin/console doctrine:migrations:migrate --no-interac
 
 6. Set up the test database
 
+In order for test to pass you have to set up test database
+
 ```bash
-docker-compose exec php php bin/console doctrine:database:create --env=test
+docker-compose exec db mariadb -u root -proot -e "CREATE DATABASE IF NOT EXISTS car_api_test; GRANT ALL PRIVILEGES ON car_api_test.* TO 'app'@'%'; FLUSH PRIVILEGES;"
+```
+
+Then run migrations and load fixtures:
+
+```bash
 docker-compose exec php php bin/console doctrine:migrations:migrate --env=test --no-interaction
+docker-compose exec php php bin/console doctrine:fixtures:load --env=test --no-interaction
 ```
 
 The application will be available at [http://localhost:8080](http://localhost:8080).

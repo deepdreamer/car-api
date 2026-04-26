@@ -14,7 +14,8 @@ class CarService
     }
 
     /**
-     * @return array{data: list<array{id: int|null, make: string, model: string, buildDate: string, colour: string}>, pagination: array{page: int, limit: int, total: int, pages: int}}
+     * @return array{data: list<array{id: int|null, make: string, model: string, buildDate: string, colour: string}>,
+     *     pagination: array{page: int, limit: int, total: int, pages: int}}
      */
     public function getAllCarsAsForApiOutput(int $page, int $limit): array
     {
