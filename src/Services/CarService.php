@@ -26,7 +26,7 @@ class CarService
      * @return array{data: list<array{id: int|null, make: string, model: string, buildDate: string, colour: string}>,
      *     pagination: array{page: int, limit: int, total: int, pages: int}}
      */
-    public function getAllCarsAsForApiOutput(int $page, int $limit): array
+    public function getAllCarsForApiOutput(int $page, int $limit): array
     {
         $total = $this->carRepository->count();
         $cars = $this->carRepository->findBy([], null, $limit, ($page - 1) * $limit);

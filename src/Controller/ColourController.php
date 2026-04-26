@@ -25,7 +25,7 @@ class ColourController
     {
         ['page' => $page, 'limit' => $limit] = $this->getPaginationParams($request);
 
-        return new JsonResponse($this->colourService->getAllColoursAsForApiOutput($page, $limit));
+        return new JsonResponse($this->colourService->getAllColoursForApiOutput($page, $limit));
     }
 
     #[Route('', methods: ['POST'])]

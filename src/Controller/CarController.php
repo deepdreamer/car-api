@@ -25,7 +25,7 @@ class CarController
     {
         ['page' => $page, 'limit' => $limit] = $this->getPaginationParams($request);
 
-        return new JsonResponse($this->carService->getAllCarsAsForApiOutput($page, $limit));
+        return new JsonResponse($this->carService->getAllCarsForApiOutput($page, $limit));
     }
 
     #[Route('', methods: ['POST'])]

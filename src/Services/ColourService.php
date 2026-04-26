@@ -23,7 +23,7 @@ class ColourService
      * @return array{data: list<array{id: int|null, name: string}>,
      *     pagination: array{page: int, limit: int, total: int, pages: int}}
      */
-    public function getAllColoursAsForApiOutput(int $page, int $limit): array
+    public function getAllColoursForApiOutput(int $page, int $limit): array
     {
         $total = $this->colourRepository->count();
         $colours = $this->colourRepository->findBy([], null, $limit, ($page - 1) * $limit);
