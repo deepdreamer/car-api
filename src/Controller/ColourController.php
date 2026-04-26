@@ -4,23 +4,31 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Repository\ColourRepository;
+use App\Controller\Trait\PaginationTrait;
+use App\Services\ColourService;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/colours')]
 class ColourController
 {
-    #[Route('', methods: ['GET'])]
-    public function list(ColourRepository $colourRepository): JsonResponse
-    {
-        $colours = $colourRepository->findAll();
+    use PaginationTrait;
 
-        return new JsonResponse([]);
+    public function __construct(private ColourService $colourService)
+    {
+    }
+
+    #[Route('', methods: ['GET'])]
+    public function list(Request $request): JsonResponse
+    {
+        ['page' => $page, 'limit' => $limit] = $this->getPaginationParams($request);
+
+        return new JsonResponse($this->colourService->getAllColoursAsForApiOutput($page, $limit));
     }
 
     #[Route('', methods: ['POST'])]
-    public function create(ColourRepository $colourRepository): JsonResponse
+    public function create(): JsonResponse
     {
         //@TODO: to be implemented
 
@@ -28,7 +36,7 @@ class ColourController
     }
 
     #[Route('/{id}', methods: ['PATCH'])]
-    public function edit(ColourRepository $colourRepository): JsonResponse
+    public function edit(): JsonResponse
     {
         //@TODO: to be implemented
 

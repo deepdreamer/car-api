@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Controller\Trait\PaginationTrait;
 use App\Services\CarService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,6 +14,8 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/cars')]
 class CarController
 {
+    use PaginationTrait;
+
     public function __construct(private CarService $carService)
     {
     }
@@ -20,8 +23,7 @@ class CarController
     #[Route('', methods: ['GET'])]
     public function list(Request $request): JsonResponse
     {
-        $page = max(1, $request->query->getInt('page', 1)); // cannot be less than 1
-        $limit = max(1, min(10000, $request->query->getInt('limit', 10))); // cannot be more than 10000
+        ['page' => $page, 'limit' => $limit] = $this->getPaginationParams($request);
 
         return new JsonResponse($this->carService->getAllCarsAsForApiOutput($page, $limit));
     }
