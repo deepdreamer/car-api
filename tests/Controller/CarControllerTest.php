@@ -132,6 +132,30 @@ class CarControllerTest extends WebTestCase
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $car['buildDate']);
     }
 
+    public function testListReturnsEmptyDataWhenNoCars(): void
+    {
+        self::bootKernel();
+
+        /** @var EntityManagerInterface $em */
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+        new ORMPurger($em)->purge();
+
+        self::ensureKernelShutdown();
+
+        $client = static::createClient();
+        $client->request('GET', '/api/cars');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $data = $this->decodeResponse($client->getResponse()->getContent());
+        $this->assertIsArray($data['data']);
+        $this->assertCount(0, $data['data']);
+
+        $this->assertIsArray($data['pagination']);
+        $this->assertSame(0, $data['pagination']['total']);
+        $this->assertSame(0, $data['pagination']['pages']);
+    }
+
     /** @return array<string, mixed> */
     private function decodeResponse(string|false $content): array
     {
