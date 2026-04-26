@@ -7,15 +7,15 @@ namespace App\Tests\Controller;
 use App\DataFixtures\AppFixtures;
 use App\Repository\CarRepository;
 use App\Repository\ColourRepository;
+use App\Tests\ApiTestCase;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
-class CarControllerTest extends WebTestCase
+class CarControllerTest extends ApiTestCase
 {
     private int $validColourId;
     private int $validCarId;
@@ -62,14 +62,7 @@ class CarControllerTest extends WebTestCase
 
         $data = $this->decodeResponse($client->getResponse()->getContent());
 
-        $this->assertArrayHasKey('data', $data);
-        $this->assertArrayHasKey('pagination', $data);
-
-        $this->assertIsArray($data['pagination']);
-        $this->assertArrayHasKey('page', $data['pagination']);
-        $this->assertArrayHasKey('limit', $data['pagination']);
-        $this->assertArrayHasKey('total', $data['pagination']);
-        $this->assertArrayHasKey('pages', $data['pagination']);
+        $this->assertPaginatedResponseShape($data);
     }
 
     public function testListDefaultPagination(): void
@@ -340,26 +333,5 @@ class CarControllerTest extends WebTestCase
         $data = $this->decodeResponse($client->getResponse()->getContent());
         $this->assertArrayHasKey('error', $data);
         $this->assertEquals('Car not found.', $data['error']);
-    }
-
-    private function assertUnprocessableWithError(KernelBrowser $client, string $field, string $message): void
-    {
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
-        $data = $this->decodeResponse($client->getResponse()->getContent());
-        $this->assertArrayHasKey('errors', $data);
-        $this->assertIsArray($data['errors']);
-        $this->assertArrayHasKey($field, $data['errors']);
-        $this->assertEquals($message, $data['errors'][$field]);
-    }
-
-    /** @return array<string, mixed> */
-    private function decodeResponse(string|false $content): array
-    {
-        $this->assertIsString($content);
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        /** @var array<string, mixed> $data */
-        return $data;
     }
 }
