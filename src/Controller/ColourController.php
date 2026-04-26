@@ -8,6 +8,7 @@ use App\Controller\Trait\PaginationTrait;
 use App\Services\ColourService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/colours')]
@@ -28,11 +29,22 @@ class ColourController
     }
 
     #[Route('', methods: ['POST'])]
-    public function create(): JsonResponse
+    public function create(Request $request): JsonResponse
     {
-        //@TODO: to be implemented
+        $body = json_decode($request->getContent(), true);
 
-        return new JsonResponse([]);
+        if (!is_array($body)) {
+            return new JsonResponse(['error' => 'Invalid JSON body.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        /** @var array<string, mixed> $body */
+        $validated = $this->colourService->createValidatedColourRequest($body);
+
+        if (is_array($validated)) {
+            return new JsonResponse($validated, Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return new JsonResponse($this->colourService->createColour($validated), Response::HTTP_CREATED);
     }
 
     #[Route('/{id}', methods: ['PATCH'])]
