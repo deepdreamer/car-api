@@ -1,0 +1,89 @@
+# Car API
+
+## Installation
+
+### Requirements
+
+- Docker
+- Docker Compose
+
+### Steps
+
+1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd car-api
+```
+
+2. Copy the environment file and configure your values
+
+```bash
+cp .env .env.local
+```
+
+3. Build and start the containers
+
+```bash
+docker-compose up -d --build
+```
+
+4. Install dependencies
+
+```bash
+docker-compose exec php composer install
+```
+
+5. Create the database and run migrations
+
+```bash
+docker-compose exec php php bin/console doctrine:database:create
+docker-compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+```
+
+6. Set up the test database
+
+```bash
+docker-compose exec php php bin/console doctrine:database:create --env=test
+docker-compose exec php php bin/console doctrine:migrations:migrate --env=test --no-interaction
+```
+
+The application will be available at [http://localhost:8080](http://localhost:8080).
+
+## Code Quality
+
+### PHPStan (static analysis)
+
+```bash
+docker-compose exec php vendor/bin/phpstan analyse
+```
+
+### PHP_CodeSniffer (coding standards check)
+
+```bash
+docker-compose exec php vendor/bin/phpcs
+```
+
+### PHP Code Beautifier and Fixer (auto-fix coding standards)
+
+```bash
+docker-compose exec php vendor/bin/phpcbf
+```
+
+### PHPUnit (tests)
+
+```bash
+docker-compose exec php vendor/bin/phpunit
+```
+
+Run a specific test file:
+
+```bash
+docker-compose exec php vendor/bin/phpunit tests/Path/To/YourTest.php
+```
+
+Run a specific test method:
+
+```bash
+docker-compose exec php vendor/bin/phpunit --filter testMethodName
+```
