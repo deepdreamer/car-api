@@ -58,6 +58,10 @@ docker-compose exec php php bin/console doctrine:fixtures:load --env=test --no-i
 
 The application will be available at [http://localhost:8080](http://localhost:8080).
 
+## API Docs
+
+Interactive API documentation (Swagger UI) is available at [http://localhost:8080/api/index.html](http://localhost:8080/api/index.html) once the application is running.
+
 ## Code Quality
 
 All code quality tools can be run via `make`. Requires `make` to be installed on the host.

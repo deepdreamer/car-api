@@ -5,8 +5,128 @@ info:
 
 tags:
   - name: Cars
+  - name: Colours
 
 paths:
+  /api/colours:
+    get:
+      tags: [Colours]
+      summary: List all colours
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated list of colours
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Colour'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags: [Colours]
+      summary: Create a colour
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ColourRequest'
+      responses:
+        '201':
+          description: Colour created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Colour'
+        '400':
+          description: Invalid JSON body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: string
+                example:
+                  errors:
+                    name: This value should not be blank.
+
+  /api/colours/{id}:
+    patch:
+      tags: [Colours]
+      summary: Edit a colour
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ColourRequest'
+      responses:
+        '200':
+          description: Colour updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Colour'
+        '400':
+          description: Invalid JSON body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Colour not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Colour not found.
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: string
+                example:
+                  errors:
+                    name: This value should not be blank.
+
   /api/cars:
     get:
       tags: [Cars]
@@ -98,6 +218,24 @@ paths:
 
 components:
   schemas:
+    Colour:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Red
+
+    ColourRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: Red
+
     Car:
       type: object
       properties:
