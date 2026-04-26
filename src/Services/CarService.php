@@ -8,12 +8,15 @@ use App\DTO\CreateCarRequest;
 use App\Entity\Car;
 use App\Repository\CarRepository;
 use App\Repository\ColourRepository;
+use App\Services\Trait\ViolationMapperTrait;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CarService
 {
+    use ViolationMapperTrait;
+
     public function __construct(
         private CarRepository $carRepository,
         private ColourRepository $colourRepository,
@@ -79,12 +82,7 @@ class CarService
         $violations = $this->validator->validate($dto);
 
         if (count($violations) > 0) {
-            $errors = [];
-            foreach ($violations as $violation) {
-                $errors[$violation->getPropertyPath()] = (string) $violation->getMessage();
-            }
-
-            return ['errors' => $errors];
+            return ['errors' => $this->mapViolations($violations)];
         }
 
         if ($this->colourRepository->find($dto->colourId) === null) {

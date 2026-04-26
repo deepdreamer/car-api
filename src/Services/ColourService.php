@@ -7,11 +7,14 @@ namespace App\Services;
 use App\DTO\CreateColourRequest;
 use App\Entity\Colour;
 use App\Repository\ColourRepository;
+use App\Services\Trait\ViolationMapperTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ColourService
 {
+    use ViolationMapperTrait;
+
     public function __construct(
         private ColourRepository $colourRepository,
         private EntityManagerInterface $entityManager,
@@ -48,6 +51,29 @@ class ColourService
      */
     public function createValidatedColourRequest(array $body): CreateColourRequest|array
     {
+        return $this->validateColourRequest($body);
+    }
+
+    public function colourExists(int $id): bool
+    {
+        return $this->colourRepository->find($id) !== null;
+    }
+
+    /**
+     * @param array<string, mixed> $body
+     * @return CreateColourRequest|array{errors: array<string, string>}
+     */
+    public function createValidatedEditColourRequest(int $id, array $body): CreateColourRequest|array
+    {
+        return $this->validateColourRequest($body, $id);
+    }
+
+    /**
+     * @param array<string, mixed> $body
+     * @return CreateColourRequest|array{errors: array<string, string>}
+     */
+    private function validateColourRequest(array $body, ?int $excludeId = null): CreateColourRequest|array
+    {
         $name = $body['name'] ?? null;
 
         if (!is_string($name)) {
@@ -59,19 +85,33 @@ class ColourService
         $violations = $this->validator->validate($dto);
 
         if (count($violations) > 0) {
-            $errors = [];
-            foreach ($violations as $violation) {
-                $errors[$violation->getPropertyPath()] = (string) $violation->getMessage();
-            }
-
-            return ['errors' => $errors];
+            return ['errors' => $this->mapViolations($violations)];
         }
 
-        if ($this->colourRepository->findOneBy(['name' => $name]) !== null) {
+        $existing = $this->colourRepository->findOneBy(['name' => $name]);
+        if ($existing !== null && $existing->getId() !== $excludeId) {
             return ['errors' => ['name' => 'Colour already exists.']];
         }
 
         return $dto;
+    }
+
+    /**
+     * @return array{id: int|null, name: string}
+     */
+    public function editColour(int $id, CreateColourRequest $request): array
+    {
+        $colour = $this->colourRepository->find($id);
+        assert($colour !== null);
+
+        $colour->setName($request->name);
+
+        $this->entityManager->flush();
+
+        return [
+            'id' => $colour->getId(),
+            'name' => $colour->getName(),
+        ];
     }
 
     /**

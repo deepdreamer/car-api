@@ -48,10 +48,25 @@ class ColourController
     }
 
     #[Route('/{id}', methods: ['PATCH'])]
-    public function edit(): JsonResponse
+    public function edit(int $id, Request $request): JsonResponse
     {
-        //@TODO: to be implemented
+        if (!$this->colourService->colourExists($id)) {
+            return new JsonResponse(['error' => 'Colour not found.'], Response::HTTP_NOT_FOUND);
+        }
 
-        return new JsonResponse([]);
+        $body = json_decode($request->getContent(), true);
+
+        if (!is_array($body)) {
+            return new JsonResponse(['error' => 'Invalid JSON body.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        /** @var array<string, mixed> $body */
+        $validated = $this->colourService->createValidatedEditColourRequest($id, $body);
+
+        if (is_array($validated)) {
+            return new JsonResponse($validated, Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return new JsonResponse($this->colourService->editColour($id, $validated));
     }
 }
